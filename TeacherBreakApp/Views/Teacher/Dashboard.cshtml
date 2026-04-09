@@ -1,0 +1,38 @@
+﻿@model LeaveBalance
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-4">
+
+                    <h4 class="fw-bold text-center mb-4">Моят отпуск</h4>
+
+                    <div class="leave-box bg-light">
+                        <h6 class="fw-bold text-primary">Платен отпуск</h6>
+                        @* <p>Общо дни: <strong>@Model.TotalLeaveDays</strong></p>
+                        <p>Използвани: <span class="text-danger fw-bold">@Model.UsedLeaveDays</span></p>
+                        <p>
+                            Оставащи: <span class="text-success fw-bold">
+                                @(Model.TotalLeaveDays - Model.UsedLeaveDays)
+                            </span>
+                        </p> *@
+                    </div>
+
+                    <div class="leave-box bg-light mt-3">
+                        <h6 class="fw-bold text-danger">Болнични</h6>
+                        @* <p>Общо дни: <strong>@Model.TotalSickDays</strong></p>
+                        <p>Използвани: <span class="text-danger fw-bold">@Model.UsedSickDays</span></p>
+                        <p>
+                            Оставащи: <span class="text-success fw-bold">
+                                @(Model.TotalSickDays - Model.UsedSickDays)
+                            </span>
+                        </p> *@
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

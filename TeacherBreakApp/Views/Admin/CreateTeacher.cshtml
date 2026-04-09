@@ -1,0 +1,54 @@
+﻿@model CreateTeacherViewModel
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-dark text-white rounded-circle mb-3"
+                         style="width: 50px; height: 50px;">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3 class="fw-bold">Добавяне на учител</h3>
+                    <p class="text-muted small">Въведете данни за нов акаунт</p>
+                </div>
+
+                <form asp-action="CreateTeacher" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Пълно име</label>
+                        <input asp-for="FullName" class="form-control border-light-subtle py-2"
+                               placeholder="напр. Иван Петров" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Имейл адрес</label>
+                        <input asp-for="Email" type="email" class="form-control border-light-subtle py-2"
+                               placeholder="ivan@school.bg" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Временна парола</label>
+                        <input asp-for="Password" type="password" class="form-control border-light-subtle py-2"
+                               placeholder="Минимум 6 символа" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mt-4 d-grid gap-2">
+                        <button type="submit" class="btn btn-dark py-2 fw-bold" style="background-color: #0f172a;">
+                            Създай акаунт
+                        </button>
+                        <a asp-action="Dashboard" class="btn btn-link text-decoration-none text-muted small">
+                            Отказ и връщане към списъка
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

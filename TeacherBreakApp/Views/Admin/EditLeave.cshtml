@@ -1,0 +1,55 @@
+﻿@model EditLeaveViewModel
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-4">
+
+                    <h4 class="fw-bold mb-3 text-center">
+                        Редакция на отпуск – @Model.TeacherName
+                    </h4>
+
+                    <form asp-action="EditLeave" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="LeaveBalanceId" />
+
+                        <h6 class="fw-bold text-primary mt-3">Платен отпуск</h6>
+
+                        <div class="mb-3">
+                            <label class="form-label">Общо дни</label>
+                            <input asp-for="TotalLeaveDays" class="form-control rounded-pill" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Използвани дни</label>
+                            <input asp-for="UsedLeaveDays" class="form-control rounded-pill" />
+                        </div>
+
+                        <h6 class="fw-bold text-danger mt-4">Болнични</h6>
+
+                        <div class="mb-3">
+                            <label class="form-label">Общо болнични дни</label>
+                            <input asp-for="TotalSickDays" class="form-control rounded-pill" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Използвани болнични</label>
+                            <input asp-for="UsedSickDays" class="form-control rounded-pill" />
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-dark rounded-pill">
+                                Запази промените
+                            </button>
+                            <a asp-action="Dashboard" class="btn btn-outline-secondary rounded-pill">
+                                Назад
+                            </a>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

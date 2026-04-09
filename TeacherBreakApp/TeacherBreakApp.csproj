@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-TeacherBreakApp-2562ac8c-c15f-4ad3-94a6-1327053a097a</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TeacherBreakApp.Data\TeacherBreakApp.Data.csproj" />
+    <ProjectReference Include="..\TeacherBreakApp.GCommon\TeacherBreakApp.GCommon.csproj" />
+    <ProjectReference Include="..\TeacherBreakApp.ViewModels\TeacherBreakApp.ViewModels.csproj" />
+    <ProjectReference Include="..\TeacherBreakApp.Web.Infrastructure\TeacherBreakApp.Web.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
