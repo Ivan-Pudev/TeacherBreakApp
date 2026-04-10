@@ -1,6 +1,6 @@
 ﻿namespace TeacherBreakApp.Controllers
 {
-    using TeacherBreakApp.Data;
+    using Data;
     using TeacherBreakApp.Data.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -8,7 +8,7 @@
     using Microsoft.EntityFrameworkCore;
 
     [Authorize(Roles = "Teacher")]
-    public class TeacherController : Controller
+    public class TeacherController : BaseController
     {
         private readonly TeacherBreakAppDbContext _db;
         private readonly UserManager<ApplicationUser> _userManager;

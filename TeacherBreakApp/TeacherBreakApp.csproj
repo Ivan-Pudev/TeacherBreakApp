@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\TeacherBreakApp.Data\TeacherBreakApp.Data.csproj" />
     <ProjectReference Include="..\TeacherBreakApp.GCommon\TeacherBreakApp.GCommon.csproj" />
+    <ProjectReference Include="..\TeacherBreakApp.Services\TeacherBreakApp.Services.csproj" />
     <ProjectReference Include="..\TeacherBreakApp.ViewModels\TeacherBreakApp.ViewModels.csproj" />
     <ProjectReference Include="..\TeacherBreakApp.Web.Infrastructure\TeacherBreakApp.Web.Infrastructure.csproj" />
   </ItemGroup>
