@@ -14,6 +14,8 @@ namespace TeacherBreakApp.Data.Models
 
         public LeaveBalance LeaveBalance { get; set; } = null!;
 
+        public bool IsDeleted { get; set; }
+
         public DateOnly StartDate { get; set; }
 
         public DateOnly EndDate { get; set; }

@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TeacherBreakApp.GCommon\TeacherBreakApp.GCommon.csproj" />
+    <ProjectReference Include="..\TeacherBreakApp.ViewModels\TeacherBreakApp.ViewModels.csproj" />
   </ItemGroup>
 
 </Project>
