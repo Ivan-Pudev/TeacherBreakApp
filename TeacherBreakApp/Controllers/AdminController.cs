@@ -10,8 +10,8 @@ namespace TeacherBreakApp.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : BaseController
     {
-        private readonly IAdminService _adminService;
-        public AdminController(IAdminService adminService)
+        private readonly IAccountService _adminService;
+        public AdminController(IAccountService adminService)
         {
             _adminService = adminService;
         }

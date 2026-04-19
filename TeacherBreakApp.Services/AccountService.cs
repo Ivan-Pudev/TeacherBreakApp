@@ -9,13 +9,13 @@ namespace TeacherBreakApp.Services
     using System;
     using System.Collections.Generic;
 
-    public class AdminService : IAdminService
+    public class AccountService : IAccountService
     {
 
-        private readonly IAdminRepository _adminRepository;
+        private readonly IAccountRepository _adminRepository;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public AdminService(IAdminRepository adminRepository,
+        public AccountService(IAccountRepository adminRepository,
             UserManager<ApplicationUser> userManager)
         {
             _adminRepository = adminRepository;

@@ -6,16 +6,18 @@ namespace TeacherBreakApp.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
-        {
-            _logger = logger;
-        }
-
         public IActionResult Index()
         {
-            return View();
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                if (User.IsInRole("Admin"))
+                    return RedirectToAction("Dashboard", "Admin");
+
+                if (User.IsInRole("Teacher"))
+                    return RedirectToAction("Dashboard", "Teacher");
+            }
+
+            return RedirectToPage("/Account/Login", new { area = "Identity", });
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

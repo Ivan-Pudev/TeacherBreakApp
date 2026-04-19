@@ -5,7 +5,7 @@ namespace TeacherBreakApp.Services.Contracts
 {
     using System.Collections.Generic;
 
-    public interface IAdminService
+    public interface IAccountService
     {
         Task<IEnumerable<LeaveBalance>> GetLeaveBalancesAsync();
 

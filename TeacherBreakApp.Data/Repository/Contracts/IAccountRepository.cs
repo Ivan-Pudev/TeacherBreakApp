@@ -7,7 +7,7 @@ namespace TeacherBreakApp.Data.Repository.Contracts
     using System.Text;
 
 
-    public interface IAdminRepository
+    public interface IAccountRepository
     {
         Task<IEnumerable<LeaveBalance>> GetLeaveBalancesAsync();
 

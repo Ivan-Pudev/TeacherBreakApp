@@ -20,7 +20,7 @@
         public async Task<IActionResult> Dashboard()
         {
             var userId = await _userManager.GetUserAsync(User);
-            if (userId == null) return RedirectToAction("Login", "Account");
+            if (userId == null) return RedirectToPage("/Account/Login", new { area = "Identity", });
             var balance = await _db.LeaveBalances
                              .Include(lb => lb.Teacher)
                              .FirstOrDefaultAsync(lb => lb.TeacherId == userId.Id);
@@ -28,7 +28,7 @@
             if (balance == null)
             {
                 ViewBag.Message = "Вашият профил все още не е конфигуриран от администратор.";
-                return View();
+                return View(); 
             }
 
             return View(balance);

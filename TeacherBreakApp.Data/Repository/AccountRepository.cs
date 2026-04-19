@@ -6,12 +6,12 @@
     using Models;
     using Contracts;
     using Microsoft.EntityFrameworkCore;
-    public class AdminRepository : BaseRepository,IAdminRepository
+    public class AccountRepository : BaseRepository,IAccountRepository
     {
 
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public AdminRepository(
+        public AccountRepository(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole<Guid>> roleManager,
             TeacherBreakAppDbContext db) : base(db)
