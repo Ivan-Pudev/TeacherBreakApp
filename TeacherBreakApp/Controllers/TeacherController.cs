@@ -1,4 +1,7 @@
-﻿namespace TeacherBreakApp.Controllers
+﻿using Microsoft.EntityFrameworkCore.Metadata;
+using TeacherBreakApp.Services.Contracts;
+
+namespace TeacherBreakApp.Controllers
 {
     using Data;
     using TeacherBreakApp.Data.Models;
@@ -10,28 +13,31 @@
     [Authorize(Roles = "Teacher")]
     public class TeacherController : BaseController
     {
-        private readonly TeacherBreakAppDbContext _db;
-        private readonly UserManager<ApplicationUser> _userManager;
-        public TeacherController(UserManager<ApplicationUser> userManager, TeacherBreakAppDbContext db)
+        private readonly IAccountService _accountService;
+        public TeacherController(IAccountService accountService)
         {
-            _userManager = userManager; 
-            _db = db;
+            _accountService = accountService;
         }
         public async Task<IActionResult> Dashboard()
         {
-            var userId = await _userManager.GetUserAsync(User);
-            if (userId == null) return RedirectToPage("/Account/Login", new { area = "Identity", });
-            var balance = await _db.LeaveBalances
-                             .Include(lb => lb.Teacher)
-                             .FirstOrDefaultAsync(lb => lb.TeacherId == userId.Id);
-
-            if (balance == null)
+            try
             {
-                ViewBag.Message = "Вашият профил все още не е конфигуриран от администратор.";
-                return View(); 
-            }
+                Guid userId = await _accountService.IsUserValidAsync(User);
 
-            return View(balance);
+                var balance = await _accountService.GetLeaveBalanceByIdAsync(userId);
+
+                if (balance == null)
+                {
+                    ViewBag.Message = "Вашият профил все още не е конфигуриран от администратор.";
+                    return View();
+                }
+
+                return View(balance);
+            }
+            catch (Exception e)
+            {
+                return RedirectToPage("/Account/Login", new { area = "Identity", });
+            }
         }
     }
 }

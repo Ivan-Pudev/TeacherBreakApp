@@ -1,4 +1,5 @@
-﻿using TeacherBreakApp.Data.Models;
+﻿using System.Security.Claims;
+using TeacherBreakApp.Data.Models;
 using TeacherBreakApp.Models;
 
 namespace TeacherBreakApp.Services.Contracts
@@ -7,6 +8,8 @@ namespace TeacherBreakApp.Services.Contracts
 
     public interface IAccountService
     {
+        Task<Guid> IsUserValidAsync(ClaimsPrincipal user);
+
         Task<IEnumerable<LeaveBalance>> GetLeaveBalancesAsync();
 
         Task<LeaveBalance?> GetLeaveBalanceByIdAsync(Guid? id);

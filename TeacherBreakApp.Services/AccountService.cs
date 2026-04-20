@@ -1,4 +1,5 @@
-﻿using TeacherBreakApp.Data.Models;
+﻿using System.Security.Claims;
+using TeacherBreakApp.Data.Models;
 using TeacherBreakApp.Data.Repository.Contracts;
 using TeacherBreakApp.Models;
 using TeacherBreakApp.Services.Contracts;
@@ -20,6 +21,18 @@ namespace TeacherBreakApp.Services
         {
             _adminRepository = adminRepository;
             _userManager = userManager;
+        }
+
+        public async Task<Guid> IsUserValidAsync(ClaimsPrincipal user)
+        {
+            ApplicationUser? appUser = await _adminRepository.GetUserAsync(user);
+
+            if (appUser == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return appUser.Id;
         }
 
         public Task<IEnumerable<LeaveBalance>> GetLeaveBalancesAsync()
