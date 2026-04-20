@@ -1,4 +1,6 @@
-﻿namespace TeacherBreakApp.Data.Repository
+﻿using System.Security.Claims;
+
+namespace TeacherBreakApp.Data.Repository
 {
     using Microsoft.AspNetCore.Identity;
     using System;
@@ -13,12 +15,15 @@
 
         public AccountRepository(
             UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole<Guid>> roleManager,
             TeacherBreakAppDbContext db) : base(db)
         {
             _userManager = userManager;
         }
 
+        public async Task<ApplicationUser?> GetUserAsync(ClaimsPrincipal user)
+        {
+            return await _userManager.GetUserAsync(user);
+        }
 
         public async Task<IEnumerable<LeaveBalance>> GetLeaveBalancesAsync()
         {
@@ -77,5 +82,6 @@
 
             return resultCount > 0;
         }
+
     }
 }

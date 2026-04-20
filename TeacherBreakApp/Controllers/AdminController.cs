@@ -10,15 +10,15 @@ namespace TeacherBreakApp.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : BaseController
     {
-        private readonly IAccountService _adminService;
-        public AdminController(IAccountService adminService)
+        private readonly IAccountService _accountService;
+        public AdminController(IAccountService accountService)
         {
-            _adminService = adminService;
+            _accountService = accountService;
         }
 
         public async Task<IActionResult> Dashboard()
         {
-            var balances = await _adminService.GetLeaveBalancesAsync();
+            var balances = await _accountService.GetLeaveBalancesAsync();
 
             return View(balances);
         }
@@ -26,7 +26,7 @@ namespace TeacherBreakApp.Controllers
         [HttpGet]
         public async Task<IActionResult> EditLeave(Guid? id)
         {
-            var lbViewModel = await _adminService.DisplayEdit(id);
+            var lbViewModel = await _accountService.DisplayEdit(id);
 
             return View(lbViewModel);
         }
@@ -38,7 +38,7 @@ namespace TeacherBreakApp.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            await _adminService.UpdateLeaveBalanceAsync(Guid.Parse(model.LeaveBalanceId.ToString()), model);
+            await _accountService.UpdateLeaveBalanceAsync(Guid.Parse(model.LeaveBalanceId.ToString()), model);
             return RedirectToAction(nameof(Dashboard));
         }
 
@@ -57,7 +57,7 @@ namespace TeacherBreakApp.Controllers
                 return View(model);
             }
 
-            await _adminService.CreateUserAsync(model);
+            await _accountService.CreateUserAsync(model);
             
             return RedirectToAction(nameof(Dashboard));
         }
@@ -66,7 +66,7 @@ namespace TeacherBreakApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteLeave(Guid id)
         {
-            await _adminService.HardDeleteLeaveBalanceAsync(id);
+            await _accountService.HardDeleteLeaveBalanceAsync(id);
 
             return RedirectToAction(nameof(Dashboard));
         }

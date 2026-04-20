@@ -1,4 +1,5 @@
-﻿using TeacherBreakApp.Data.Models;
+﻿using System.Security.Claims;
+using TeacherBreakApp.Data.Models;
 
 namespace TeacherBreakApp.Data.Repository.Contracts
 {
@@ -23,5 +24,6 @@ namespace TeacherBreakApp.Data.Repository.Contracts
 
         Task<bool> HardDeleteLeaveBalanceAsync(LeaveBalance lb);
 
+        Task<ApplicationUser?> GetUserAsync(ClaimsPrincipal user);
     }
 }
