@@ -1,55 +1,279 @@
 ﻿@model EditLeaveViewModel
 
-<div class="container mt-5">
+@{
+    var monthNames = new[]
+    {
+        "Януари", "Февруари", "Март", "Април", "Май", "Юни",
+        "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември"
+    };
+}
+
+<div class="container mt-5 mb-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-body p-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4 p-4">
 
-                    <h4 class="fw-bold mb-3 text-center">
-                        Редакция на отпуск – @Model.TeacherName
-                    </h4>
-
-                    <form asp-action="EditLeave" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" asp-for="LeaveBalanceId" />
-
-                        <h6 class="fw-bold text-primary mt-3">Платен отпуск</h6>
-
-                        <div class="mb-3">
-                            <label class="form-label">Общо дни</label>
-                            <input asp-for="TotalLeaveDays" class="form-control rounded-pill" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Използвани дни</label>
-                            <input asp-for="UsedLeaveDays" class="form-control rounded-pill" />
-                        </div>
-
-                        <h6 class="fw-bold text-danger mt-4">Болнични</h6>
-
-                        <div class="mb-3">
-                            <label class="form-label">Общо болнични дни</label>
-                            <input asp-for="TotalSickDays" class="form-control rounded-pill" />
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">Използвани болнични</label>
-                            <input asp-for="UsedSickDays" class="form-control rounded-pill" />
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-dark rounded-pill">
-                                Запази промените
-                            </button>
-                            <a asp-action="Dashboard" class="btn btn-outline-secondary rounded-pill">
-                                Назад
-                            </a>
-                        </div>
-                    </form>
-
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-dark text-white rounded-circle mb-3"
+                         style="width: 50px; height: 50px;">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3 class="fw-bold">Редакция на отпуск</h3>
+                    <p class="text-muted small mb-0">@Model.TeacherName – @Model.Year г.</p>
                 </div>
-            </div>
+
+                <form asp-action="EditLeave" method="post" id="editForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="LeaveBalanceId" />
+                    <input type="hidden" asp-for="Year" />
+                    <input type="hidden" asp-for="TeacherName" />
+
+                    <p class="fw-bold small text-uppercase text-muted mb-2 border-bottom pb-1">Баланс</p>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-4">
+                            <label class="form-label fw-bold small">Пренесени дни</label>
+                            <input asp-for="CarryOverDays" type="number" min="0"
+                                   class="form-control text-center balance-input" />
+                            <span asp-validation-for="CarryOverDays" class="text-danger small"></span>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-bold small">Полагаем отпуск</label>
+                            <input asp-for="AnnualLeaveDays" type="number" min="0"
+                                   class="form-control text-center balance-input" />
+                            <span asp-validation-for="AnnualLeaveDays" class="text-danger small"></span>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-bold small">Доп. отпуск</label>
+                            <input asp-for="AdditionalLeaveDays" type="number" min="0"
+                                   class="form-control text-center balance-input" />
+                            <span asp-validation-for="AdditionalLeaveDays" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-secondary py-2 px-3 small mb-4">
+                        Общо дни: <strong id="totalPreview">
+                        @(Model.CarryOverDays + Model.AnnualLeaveDays + Model.AdditionalLeaveDays)
+                    </strong>
+                    &nbsp;|&nbsp;
+                    Използвани: <strong id="usedPreview">0</strong>
+                    &nbsp;|&nbsp;
+                    Оставащи: <strong id="remainingPreview">0</strong>
+                </div>
+
+                <p class="fw-bold small text-uppercase text-muted mb-3 border-bottom pb-1">
+                    Отсъствия по месеци
+                </p>
+
+                @for (int m = 0; m < 12; m++)
+                {
+                    var entries = Model.EntriesByMonth[m];
+                    <div class="mb-3 border rounded-3 p-3" id="month-block-@m">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold small">@monthNames[m]</span>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-dark rounded-pill px-3"
+                                    onclick="addEntry(@m)">
+                                <i class="fas fa-plus me-1"></i> Добави период
+                            </button>
+                        </div>
+
+                        <div id="entries-@m">
+                            @for (int e = 0; e < entries.Count; e++)
+                            {
+                                var entry = entries[e];
+                                <div class="row g-2 align-items-center mb-2 entry-row" data-month="@m">
+                                    <input type="hidden"
+                                           name="EntriesByMonth[@m][@e].Id"
+                                           value="@entry.Id" />
+                                    <input type="hidden"
+                                           name="EntriesByMonth[@m][@e].IsDeleted"
+                                           value="false"
+                                           class="is-deleted-input" />
+                                    <div class="col-5">
+                                        <label class="form-label small mb-1">От</label>
+                                        <input type="date"
+                                               name="EntriesByMonth[@m][@e].StartDate"
+                                               value="@entry.StartDate.ToString("yyyy-MM-dd")"
+                                               class="form-control form-control-sm date-input"
+                                               data-month="@m" />
+                                    </div>
+                                    <div class="col-5">
+                                        <label class="form-label small mb-1">До</label>
+                                        <input type="date"
+                                               name="EntriesByMonth[@m][@e].EndDate"
+                                               value="@entry.EndDate.ToString("yyyy-MM-dd")"
+                                               class="form-control form-control-sm date-input"
+                                               data-month="@m" />
+                                    </div>
+                                    <div class="col-2 text-center">
+                                        <label class="form-label small mb-1">Дни</label>
+                                        <div class="fw-bold text-danger day-count">0</div>
+                                    </div>
+                                    <div class="col-12 text-end">
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                                onclick="removeEntry(this)">
+                                            <i class="fas fa-trash-alt me-1"></i> Премахни
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="text-end mt-1">
+                            <span class="small text-muted">
+                                Месечно: <strong class="month-total text-danger" data-month="@m">0</strong> дни
+                            </span>
+                        </div>
+                    </div>
+                }
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-dark py-2 fw-bold"
+                            style="background-color: #0f172a;">
+                        Запази промените
+                    </button>
+                    <a asp-action="Dashboard"
+                           class="btn btn-link text-decoration-none text-muted small text-center">
+                        Отказ и връщане към списъка
+                    </a>
+                </div>
+            </form>
+
         </div>
     </div>
 </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Track entry counts per month for correct form field naming
+        const entryCounts = @Html.Raw(
+                    System.Text.Json.JsonSerializer.Serialize(
+                            Model.EntriesByMonth.Select(m => m.Count).ToArray()
+                    )
+            );
+
+        function addEntry(month) {
+            const idx = entryCounts[month];
+            const container = document.getElementById(`entries-${month}`);
+
+            const row = document.createElement('div');
+            row.className = 'row g-2 align-items-center mb-2 entry-row';
+            row.dataset.month = month;
+            row.innerHTML = `
+                <input type="hidden" name="EntriesByMonth[${month}][${idx}].Id" value="" />
+                <input type="hidden" name="EntriesByMonth[${month}][${idx}].IsDeleted"
+                       value="false" class="is-deleted-input" />
+                <div class="col-5">
+                    <label class="form-label small mb-1">От</label>
+                    <input type="date" name="EntriesByMonth[${month}][${idx}].StartDate"
+                           class="form-control form-control-sm date-input" data-month="${month}" />
+                </div>
+                <div class="col-5">
+                    <label class="form-label small mb-1">До</label>
+                    <input type="date" name="EntriesByMonth[${month}][${idx}].EndDate"
+                           class="form-control form-control-sm date-input" data-month="${month}" />
+                </div>
+                <div class="col-2 text-center">
+                    <label class="form-label small mb-1">Дни</label>
+                    <div class="fw-bold text-danger day-count">0</div>
+                </div>
+                <div class="col-12 text-end">
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                            onclick="removeEntry(this)">
+                        <i class="fas fa-trash-alt me-1"></i> Премахни
+                    </button>
+                </div>`;
+
+            // Attach date change listeners
+            row.querySelectorAll('.date-input').forEach(i => i.addEventListener('change', recalcAll));
+            container.appendChild(row);
+            entryCounts[month]++;
+        }
+
+        function removeEntry(btn) {
+            const row = btn.closest('.entry-row');
+            // Mark as deleted instead of removing DOM — keeps hidden field in form
+            const deletedInput = row.querySelector('.is-deleted-input');
+            if (deletedInput) deletedInput.value = 'true';
+            row.style.display = 'none';
+            recalcAll();
+        }
+
+        function countWeekdays(start, end) {
+            let count = 0;
+            const cur = new Date(start);
+            while (cur <= end) {
+                const day = cur.getDay();
+                if (day !== 0 && day !== 6) count++;
+                cur.setDate(cur.getDate() + 1);
+            }
+            return count;
+        }
+
+        function recalcAll() {
+            let totalUsed = 0;
+
+            for (let m = 0; m < 12; m++) {
+                let monthUsed = 0;
+                const rows = document.querySelectorAll(`.entry-row[data-month="${m}"]`);
+
+                rows.forEach(row => {
+                    if (row.style.display === 'none') return;
+                    const inputs = row.querySelectorAll('.date-input');
+                    const startVal = inputs[0]?.value;
+                    const endVal = inputs[1]?.value;
+                    const dayCountEl = row.querySelector('.day-count');
+
+                    if (startVal && endVal) {
+                        const start = new Date(startVal);
+                        const end = new Date(endVal);
+                        if (end >= start) {
+                            const days = countWeekdays(start, end);
+                            dayCountEl.textContent = days;
+                            monthUsed += days;
+                        } else {
+                            dayCountEl.textContent = '!';
+                            dayCountEl.classList.add('text-warning');
+                        }
+                    } else {
+                        if (dayCountEl) dayCountEl.textContent = '0';
+                    }
+                });
+
+                const monthTotalEl = document.querySelector(`.month-total[data-month="${m}"]`);
+                if (monthTotalEl) monthTotalEl.textContent = monthUsed;
+                totalUsed += monthUsed;
+            }
+
+            const totalDays = (parseInt(document.getElementById('CarryOverDays').value) || 0)
+                            + (parseInt(document.getElementById('AnnualLeaveDays').value) || 0)
+                            + (parseInt(document.getElementById('AdditionalLeaveDays').value) || 0);
+
+            document.getElementById('usedPreview').textContent = totalUsed;
+            document.getElementById('remainingPreview').textContent = totalDays - totalUsed;
+
+            const remaining = totalDays - totalUsed;
+            document.getElementById('remainingPreview').className =
+                remaining < 0 ? 'text-danger fw-bold' : 'fw-bold';
+        }
+
+        function updateTotal() {
+            recalcAll();
+            const total = (parseInt(document.getElementById('CarryOverDays').value) || 0)
+                        + (parseInt(document.getElementById('AnnualLeaveDays').value) || 0)
+                        + (parseInt(document.getElementById('AdditionalLeaveDays').value) || 0);
+            document.getElementById('totalPreview').textContent = total;
+        }
+
+        // Init listeners
+        document.querySelectorAll('.balance-input').forEach(i => i.addEventListener('input', updateTotal));
+        document.querySelectorAll('.date-input').forEach(i => i.addEventListener('change', recalcAll));
+
+        // Run on load to populate day counts from existing entries
+        recalcAll();
+    </script>
+}

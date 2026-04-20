@@ -13,19 +13,19 @@ namespace TeacherBreakApp.Services
     public class AccountService : IAccountService
     {
 
-        private readonly IAccountRepository _adminRepository;
+        private readonly IAccountRepository _accountRepository;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public AccountService(IAccountRepository adminRepository,
+        public AccountService(IAccountRepository accountRepository,
             UserManager<ApplicationUser> userManager)
         {
-            _adminRepository = adminRepository;
+            _accountRepository = accountRepository;
             _userManager = userManager;
         }
 
         public async Task<Guid> IsUserValidAsync(ClaimsPrincipal user)
         {
-            ApplicationUser? appUser = await _adminRepository.GetUserAsync(user);
+            ApplicationUser? appUser = await _userManager.GetUserAsync(user);
 
             if (appUser == null)
             {
@@ -37,12 +37,12 @@ namespace TeacherBreakApp.Services
 
         public Task<IEnumerable<LeaveBalance>> GetLeaveBalancesAsync()
         {
-            return _adminRepository.GetLeaveBalancesAsync();
+            return _accountRepository.GetLeaveBalancesWithEntriesAsync();
         }
 
         public Task<LeaveBalance?> GetLeaveBalanceByIdAsync(Guid? id)
         {
-            return _adminRepository.GetLeaveBalanceWithTeacherByIdAsync(id);
+            return _accountRepository.GetLeaveBalanceWithTeacherByIdAsync(id);
         }
 
         public async Task<EditLeaveViewModel?> DisplayEdit(Guid? id)
@@ -51,28 +51,120 @@ namespace TeacherBreakApp.Services
 
             if (lb == null) throw new InvalidOperationException();
 
-            return (new EditLeaveViewModel
+            var entriesByMonth = Enumerable.Range(0, 12)
+                .Select(_ => new List<LeaveEntryViewModel>())
+                .ToList();
+
+            foreach (var entry in lb.LeaveEntries.Where(e => !e.IsDeleted))
             {
-                //LeaveBalanceId = lb.Id,
-                //TeacherName = lb.Teacher?.UserName ?? "(unknown)",
-                //TotalLeaveDays = lb.TotalLeaveDays,
-                //UsedLeaveDays = lb.UsedLeaveDays,
-                //TotalSickDays = lb.TotalSickDays,
-                //UsedSickDays = lb.UsedSickDays,
-            });
+                int monthIndex = entry.StartDate.Month - 1;
+
+                if (monthIndex < 0 || monthIndex > 11) continue;
+
+                entriesByMonth[monthIndex].Add(new LeaveEntryViewModel
+                {
+                    Id = entry.Id,
+                    StartDate = entry.StartDate,
+                    EndDate = entry.EndDate,
+                    IsDeleted = false
+                });
+            }
+
+            return new EditLeaveViewModel
+            {
+                LeaveBalanceId = lb.Id,
+                TeacherName = lb.Teacher.FullName,
+                Year = lb.Year,
+                CarryOverDays = lb.CarryOverDays,
+                AnnualLeaveDays = lb.AnnualLeaveDays,
+                AdditionalLeaveDays = lb.AdditionalLeaveDays,
+                EntriesByMonth = entriesByMonth
+            };
         }
 
         public async Task UpdateLeaveBalanceAsync(Guid id, EditLeaveViewModel vm)
         {
-            var lb = await GetLeaveBalanceByIdAsync(id);
+            LeaveBalance? lb = await GetLeaveBalanceByIdAsync(id);
             if (lb == null) throw new InvalidOperationException();
 
-            //lb.TotalLeaveDays = model.TotalLeaveDays;
-            //lb.UsedLeaveDays = model.UsedLeaveDays;
-            //lb.TotalSickDays = model.TotalSickDays;
-            //lb.UsedSickDays = model.UsedSickDays;
+            lb.CarryOverDays = vm.CarryOverDays;
+            lb.AnnualLeaveDays = vm.AnnualLeaveDays;
+            lb.AdditionalLeaveDays = vm.AdditionalLeaveDays;
 
-            bool isUpdateSuccessful = await _adminRepository.UpdateLeaveBalanceAsync(lb);
+            var submittedEntries = vm.EntriesByMonth
+                .Where(monthList => monthList != null)
+                .SelectMany(monthList => monthList)
+                .ToList();
+
+            var submittedExistingIds = submittedEntries
+                .Where(e => e.Id.HasValue && e.Id != Guid.Empty)
+                .Select(e => e.Id!.Value)
+                .ToHashSet();
+
+            foreach (LeaveEntry dbEntry in lb.LeaveEntries.Where(e => !e.IsDeleted))
+            {
+                if (!submittedExistingIds.Contains(dbEntry.Id))
+                {
+                    bool isDeleteSuccessful = await _accountRepository.SoftDeleteLeaveEntryAsync(dbEntry);
+
+                    if (!isDeleteSuccessful)
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+            }
+
+            foreach (LeaveEntryViewModel submitted in submittedEntries)
+            {
+                if (submitted.StartDate == default || submitted.EndDate == default)
+                    continue;
+
+                if (submitted.EndDate < submitted.StartDate)
+                    continue;
+
+                bool isNew = !submitted.Id.HasValue || submitted.Id == Guid.Empty;
+
+                if (isNew)
+                {
+                    if (!submitted.IsDeleted)
+                    {
+                        var newEntry = new LeaveEntry
+                        {
+                            Id = Guid.NewGuid(),
+                            LeaveBalanceId = lb.Id,
+                            StartDate = submitted.StartDate,
+                            EndDate = submitted.EndDate,
+                            Days = CountWeekdays(submitted.StartDate, submitted.EndDate),
+                            IsDeleted = false
+                        };
+
+                        bool isAddSuccessful = await _accountRepository.AddLeaveEntryAsync(newEntry);
+
+                        lb.LeaveEntries.Add(newEntry);
+                    }
+                }
+                else
+                {
+                    var existing = lb.LeaveEntries
+                        .FirstOrDefault(e => e.Id == submitted.Id!.Value);
+
+                    if (existing == null)
+                        continue; 
+                    if (submitted.IsDeleted)
+                    {
+                        existing.IsDeleted = true;
+                    }
+                    else
+                    {
+                        existing.StartDate = submitted.StartDate;
+                        existing.EndDate = submitted.EndDate;
+                        existing.Days = CountWeekdays(submitted.StartDate, submitted.EndDate);
+                        existing.IsDeleted = false;
+                    }
+                }
+            }
+
+            bool isUpdateSuccessful = await _accountRepository.UpdateLeaveBalanceAsync(lb);
 
             if (!isUpdateSuccessful)
             {
@@ -106,7 +198,17 @@ namespace TeacherBreakApp.Services
 
             await _userManager.AddToRoleAsync(user, "Teacher");
 
-            await _adminRepository.AddLeaveBalanceAsync(new LeaveBalance { TeacherId = user.Id });
+            var newBalance = new LeaveBalance()
+            {
+                TeacherId = user.Id,
+                IsDeleted = false,
+                Year = vm.Year,
+                CarryOverDays = vm.CarryOverDays,
+                AnnualLeaveDays = vm.AnnualLeaveDays,
+                AdditionalLeaveDays = vm.AdditionalLeaveDays,
+            };
+
+            await _accountRepository.AddLeaveBalanceAsync(newBalance);
         }
 
         public async Task HardDeleteLeaveBalanceAsync(Guid id)
@@ -116,8 +218,22 @@ namespace TeacherBreakApp.Services
             if (lb == null)
                 throw new InvalidOperationException();
 
-            await _adminRepository.HardDeleteLeaveBalanceAsync(lb);
+            await _accountRepository.HardDeleteLeaveBalanceAsync(lb);
 
+        }
+
+        private static int CountWeekdays(DateOnly start, DateOnly end)
+        {
+            int count = 0;
+            var current = start;
+            while (current <= end)
+            {
+                var dow = current.DayOfWeek;
+                if (dow != DayOfWeek.Saturday && dow != DayOfWeek.Sunday)
+                    count++;
+                current = current.AddDays(1);
+            }
+            return count;
         }
     }
 }

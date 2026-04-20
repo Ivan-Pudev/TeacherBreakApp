@@ -45,7 +45,7 @@ namespace TeacherBreakApp.Controllers
         [HttpGet]
         public IActionResult CreateTeacher()
         {
-           return View();
+           return View(new CreateTeacherViewModel());
         }
 
         [HttpPost]

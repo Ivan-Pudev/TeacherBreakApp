@@ -10,20 +10,26 @@ namespace TeacherBreakApp.Data.Repository.Contracts
 
     public interface IAccountRepository
     {
-        Task<IEnumerable<LeaveBalance>> GetLeaveBalancesAsync();
+        Task<IEnumerable<LeaveBalance>> GetLeaveBalancesWithEntriesAsync();
 
         Task<LeaveBalance?> GetLeaveBalanceWithTeacherByIdAsync(Guid? id);
 
         Task<bool> AddLeaveBalanceAsync(LeaveBalance lb);
 
+        Task<bool> AddLeaveEntryAsync(LeaveEntry le);
+
         Task<bool> UpdateLeaveBalanceAsync(LeaveBalance lb);
 
-        Task<bool> RestoreQuizAsync(LeaveBalance lb);
+        Task<bool> UpdateLeaveEntryAsync(LeaveEntry le);
+
+        Task<bool> RestoreLeaveBalanceAsync(LeaveBalance lb);
 
         Task<bool> SoftDeleteLeaveBalanceAsync(LeaveBalance lb);
 
+        Task<bool> SoftDeleteLeaveEntryAsync(LeaveEntry le);
+
         Task<bool> HardDeleteLeaveBalanceAsync(LeaveBalance lb);
 
-        Task<ApplicationUser?> GetUserAsync(ClaimsPrincipal user);
+        Task<bool> HardDeleteLeaveEntryAsync(LeaveEntry le);
     }
 }
