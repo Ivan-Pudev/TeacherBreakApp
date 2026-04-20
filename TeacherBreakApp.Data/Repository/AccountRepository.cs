@@ -1,8 +1,5 @@
-﻿using System.Security.Claims;
-
-namespace TeacherBreakApp.Data.Repository
+﻿namespace TeacherBreakApp.Data.Repository
 {
-    using Microsoft.AspNetCore.Identity;
     using System;
     using System.Collections.Generic;
     using Models;
@@ -11,24 +8,14 @@ namespace TeacherBreakApp.Data.Repository
     public class AccountRepository : BaseRepository,IAccountRepository
     {
 
-        private readonly UserManager<ApplicationUser> _userManager;
+        public AccountRepository(TeacherBreakAppDbContext db) : base(db) { }
 
-        public AccountRepository(
-            UserManager<ApplicationUser> userManager,
-            TeacherBreakAppDbContext db) : base(db)
-        {
-            _userManager = userManager;
-        }
-
-        public async Task<ApplicationUser?> GetUserAsync(ClaimsPrincipal user)
-        {
-            return await _userManager.GetUserAsync(user);
-        }
-
-        public async Task<IEnumerable<LeaveBalance>> GetLeaveBalancesAsync()
+        public async Task<IEnumerable<LeaveBalance>> GetLeaveBalancesWithEntriesAsync()
         {
             List<LeaveBalance> balances = await DbContext.LeaveBalances
                 .Include(lb => lb.Teacher)
+                .Include(lb=>lb.LeaveEntries)
+                .Where(lb=>!lb.IsDeleted && lb.Year == DateTime.Now.Year)
                 .ToListAsync();
 
             return balances;
@@ -38,6 +25,8 @@ namespace TeacherBreakApp.Data.Repository
         {
             LeaveBalance? lb = await DbContext.LeaveBalances
                 .Include(l => l.Teacher)
+                .Include(l=>l.LeaveEntries)
+                .Where(lb=>!lb.IsDeleted && lb.Year == DateTime.Now.Year)
                 .FirstOrDefaultAsync(l => l.Id == id);
 
             return lb;
@@ -51,6 +40,14 @@ namespace TeacherBreakApp.Data.Repository
             return resultCount > 0;
         }
 
+        public async Task<bool> AddLeaveEntryAsync(LeaveEntry le)
+        {
+            await DbContext.LeaveEntries.AddAsync(le);
+            int resultCount = await SaveChangesAsync();
+
+            return resultCount > 0;
+        }
+
         public async Task<bool> UpdateLeaveBalanceAsync(LeaveBalance lb)
         {
             DbContext.LeaveBalances.Update(lb);
@@ -59,7 +56,15 @@ namespace TeacherBreakApp.Data.Repository
             return resultCount > 0;
         }
 
-        public async Task<bool> RestoreQuizAsync(LeaveBalance lb)
+        public async Task<bool> UpdateLeaveEntryAsync(LeaveEntry le)
+        {
+            DbContext.LeaveEntries.Update(le);
+            int resultCount = await SaveChangesAsync();
+
+            return resultCount > 0;
+        }
+
+        public async Task<bool> RestoreLeaveBalanceAsync(LeaveBalance lb)
         {
             lb.IsDeleted = false;
             int resultsCount = await SaveChangesAsync();
@@ -75,6 +80,22 @@ namespace TeacherBreakApp.Data.Repository
             return resultCount > 0;
         }
 
+        public async Task<bool> SoftDeleteLeaveEntryAsync(LeaveEntry le)
+        {
+            le.IsDeleted = true;
+            int resultCount = await SaveChangesAsync();
+
+            return resultCount > 0;
+        }
+
+        public async Task<bool> HardDeleteLeaveEntryAsync(LeaveEntry le)
+        {
+            DbContext.LeaveEntries.Remove(le);
+            int resultCount = await SaveChangesAsync();
+
+            return resultCount > 0;
+        }
+
         public async Task<bool> HardDeleteLeaveBalanceAsync(LeaveBalance lb)
         {
             DbContext.LeaveBalances.Remove(lb);
@@ -82,6 +103,7 @@ namespace TeacherBreakApp.Data.Repository
 
             return resultCount > 0;
         }
+
 
     }
 }

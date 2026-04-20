@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NuGet.Packaging" Version="7.3.1" />
+    <PackageReference Include="NuGet.Protocol" Version="7.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\TeacherBreakApp.Data.Models\TeacherBreakApp.Data.Models.csproj" />
     <ProjectReference Include="..\TeacherBreakApp.Data\TeacherBreakApp.Data.csproj" />
     <ProjectReference Include="..\TeacherBreakApp.GCommon\TeacherBreakApp.GCommon.csproj" />
