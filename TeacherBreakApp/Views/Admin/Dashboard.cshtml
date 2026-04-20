@@ -28,6 +28,7 @@
                         {
                             var totalDays = lb.CarryOverDays + lb.AnnualLeaveDays + lb.AdditionalLeaveDays;
                             var usedDays = lb.LeaveEntries
+                                .Where(e => !e.IsDeleted)
                                 .Sum(e => e.Days);
                             var remainingDays = totalDays - usedDays;
 
