@@ -1,6 +1,6 @@
 ﻿namespace TeacherBreakApp.Controllers
 {
-    using TeacherBreakApp.Data;
+    using Data;
     using TeacherBreakApp.Data.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -8,7 +8,7 @@
     using Microsoft.EntityFrameworkCore;
 
     [Authorize(Roles = "Teacher")]
-    public class TeacherController : Controller
+    public class TeacherController : BaseController
     {
         private readonly TeacherBreakAppDbContext _db;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -20,7 +20,7 @@
         public async Task<IActionResult> Dashboard()
         {
             var userId = await _userManager.GetUserAsync(User);
-            if (userId == null) return RedirectToAction("Login", "Account");
+            if (userId == null) return RedirectToPage("/Account/Login", new { area = "Identity", });
             var balance = await _db.LeaveBalances
                              .Include(lb => lb.Teacher)
                              .FirstOrDefaultAsync(lb => lb.TeacherId == userId.Id);
@@ -28,7 +28,7 @@
             if (balance == null)
             {
                 ViewBag.Message = "Вашият профил все още не е конфигуриран от администратор.";
-                return View();
+                return View(); 
             }
 
             return View(balance);

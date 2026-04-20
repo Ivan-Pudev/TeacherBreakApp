@@ -1,8 +1,14 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using TeacherBreakApp.Data;
 using TeacherBreakApp.Data.Contracts;
 using TeacherBreakApp.Data.Models;
+using TeacherBreakApp.Data.Repository;
+using TeacherBreakApp.Data.Repository.Contracts;
+using TeacherBreakApp.Services;
+using TeacherBreakApp.Services.Contracts;
 using TeacherBreakApp.Web.Infrastructure;
 
 namespace TeacherBreakApp
@@ -14,31 +20,56 @@ namespace TeacherBreakApp
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddDbContext<TeacherBreakAppDbContext>(options =>
-            options.UseSqlServer(
-         builder.Configuration.GetConnectionString("DefaultConnection"),
-         sql => sql.EnableRetryOnFailure()));
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                    sql => sql.EnableRetryOnFailure()));
+
+            builder.Services
+                .AddDefaultIdentity<ApplicationUser>(options =>
+                {
+                    options.SignIn.RequireConfirmedAccount = false;
+                })
+                .AddRoles<IdentityRole<Guid>>()
+                .AddEntityFrameworkStores<TeacherBreakAppDbContext>();
+
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+            builder.Services.AddControllersWithViews(options =>
             {
-                options.Password.RequiredLength = 6;
-            })
-            .AddEntityFrameworkStores<TeacherBreakAppDbContext>()
-            .AddDefaultTokenProviders();
+                var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
 
-            builder.Services.AddControllersWithViews();
-
-            builder.Services.AddScoped<IIdentitySeeder, IdentitySeeder>();
-
+                options.Filters.Add(new AuthorizeFilter(policy));
+            });
 
             builder.Services.ConfigureApplicationCookie(options =>
             {
-                options.LoginPath = "/Account/Login";
-                options.AccessDeniedPath = "/Account/AccessDenied";
+                options.LoginPath = "/Identity/Account/Login";
+                options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+
+                options.Cookie.Name = "TeacherBreakApp.Auth";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+
+                // session cookie
+                options.Cookie.MaxAge = null;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
+
+                options.SlidingExpiration = false;
             });
 
-            builder.Services.AddAuthentication();
-            builder.Services.AddAuthorization();
+            builder.Services.AddRazorPages();
+
+            builder.Services.AddScoped<IIdentitySeeder, IdentitySeeder>();
+            builder.Services.AddScoped<IAccountService, AccountService>();
+            builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/Identity/Account/Login";
+                options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+            });
 
             var app = builder.Build();
 
@@ -69,9 +100,11 @@ namespace TeacherBreakApp
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.MapRazorPages();
+
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Account}/{action=Login}");
+                pattern: "{controller=Home}/{action=Index}/{id?}");
 
             await app.RunAsync();
         }

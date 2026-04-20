@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TeacherBreakApp.Data.Models\TeacherBreakApp.Data.Models.csproj" />
+    <ProjectReference Include="..\TeacherBreakApp.Data\TeacherBreakApp.Data.csproj" />
+    <ProjectReference Include="..\TeacherBreakApp.GCommon\TeacherBreakApp.GCommon.csproj" />
+    <ProjectReference Include="..\TeacherBreakApp.ViewModels\TeacherBreakApp.ViewModels.csproj" />
+  </ItemGroup>
+
+</Project>
