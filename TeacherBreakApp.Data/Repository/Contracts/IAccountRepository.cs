@@ -14,6 +14,8 @@ namespace TeacherBreakApp.Data.Repository.Contracts
 
         Task<LeaveBalance?> GetLeaveBalanceWithTeacherByIdAsync(Guid? id);
 
+        Task<LeaveBalance?> GetLeaveBalanceWithTeacherIdAsync(Guid? id);
+
         Task<bool> AddLeaveBalanceAsync(LeaveBalance lb);
 
         Task<bool> AddLeaveEntryAsync(LeaveEntry le);

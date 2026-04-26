@@ -26,8 +26,18 @@
             LeaveBalance? lb = await DbContext.LeaveBalances
                 .Include(l => l.Teacher)
                 .Include(l=>l.LeaveEntries)
-                .Where(lb=>!lb.IsDeleted && lb.Year == DateTime.Now.Year)
+                .Where(lb=>!lb.IsDeleted)
                 .FirstOrDefaultAsync(l => l.Id == id);
+
+            return lb;
+        }
+
+        public async Task<LeaveBalance?> GetLeaveBalanceWithTeacherIdAsync(Guid? id)
+        {
+            LeaveBalance? lb = await DbContext.LeaveBalances
+                .Include(l => l.Teacher)
+                .Include(l => l.LeaveEntries)
+                .FirstAsync(lb => !lb.IsDeleted && lb.TeacherId == id);
 
             return lb;
         }

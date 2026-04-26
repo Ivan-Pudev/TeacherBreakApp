@@ -1,38 +1,184 @@
 ﻿@model LeaveBalance
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-body p-4">
+@{
+    var monthNames = new[]
+    {
+        "Януари", "Февруари", "Март", "Април", "Май", "Юни",
+        "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември"
+    };
 
-                    <h4 class="fw-bold text-center mb-4">Моят отпуск</h4>
+    var activeEntries = Model.LeaveEntries.Where(e => !e.IsDeleted).ToList();
+    var totalDays = Model.CarryOverDays + Model.AnnualLeaveDays + Model.AdditionalLeaveDays;
+    var usedDays = activeEntries.Sum(e => e.Days);
+    var remainingDays = totalDays - usedDays;
+    var usedPercent = totalDays > 0 ? (int)((usedDays / (double)totalDays) * 100) : 0;
+}
 
-                    <div class="leave-box bg-light">
-                        <h6 class="fw-bold text-primary">Платен отпуск</h6>
-                        @* <p>Общо дни: <strong>@Model.TotalLeaveDays</strong></p>
-                        <p>Използвани: <span class="text-danger fw-bold">@Model.UsedLeaveDays</span></p>
-                        <p>
-                            Оставащи: <span class="text-success fw-bold">
-                                @(Model.TotalLeaveDays - Model.UsedLeaveDays)
-                            </span>
-                        </p> *@
-                    </div>
+<div class="container mt-5 mb-5">
 
-                    <div class="leave-box bg-light mt-3">
-                        <h6 class="fw-bold text-danger">Болнични</h6>
-                        @* <p>Общо дни: <strong>@Model.TotalSickDays</strong></p>
-                        <p>Използвани: <span class="text-danger fw-bold">@Model.UsedSickDays</span></p>
-                        <p>
-                            Оставащи: <span class="text-success fw-bold">
-                                @(Model.TotalSickDays - Model.UsedSickDays)
-                            </span>
-                        </p> *@
-                    </div>
+    <div class="mb-4">
+        <h2 class="fw-bold">Моят отпуск</h2>
+        <p class="text-muted mb-0">@Model.Teacher.FullName &mdash; @Model.Year г.</p>
+    </div>
 
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100 text-center p-3">
+                <div class="text-muted small mb-1">Общо дни</div>
+                <div class="fw-bold fs-2">@totalDays</div>
+                <div class="text-muted" style="font-size:0.75rem;">
+                    @Model.CarryOverDays пренесени +
+                    @Model.AnnualLeaveDays полагаеми +
+                    @Model.AdditionalLeaveDays доп.
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100 text-center p-3">
+                <div class="text-muted small mb-1">Използвани</div>
+                <div class="fw-bold fs-2 text-danger">@usedDays</div>
+                <div class="text-muted" style="font-size:0.75rem;">работни дни</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100 text-center p-3">
+                <div class="text-muted small mb-1">Оставащи</div>
+                <div class="fw-bold fs-2 @(remainingDays < 0 ? "text-danger" : "text-success")">
+                    @remainingDays
+                </div>
+                <div class="text-muted" style="font-size:0.75rem;">работни дни</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-3 h-100 text-center p-3">
+                <div class="text-muted small mb-1">Използвани</div>
+                <div class="fw-bold fs-2">@usedPercent%</div>
+                <div class="progress mt-2" style="height:6px;">
+                    <div class="progress-bar @(usedPercent > 90 ? "bg-danger" : "bg-dark")"
+                         style="width:@usedPercent%;"></div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-4">Отсъствия по месеци</h5>
+
+            <div class="row g-3">
+                @for (int m = 1; m <= 12; m++)
+                {
+                    var monthEntries = activeEntries
+                        .Where(e => e.StartDate.Month == m || e.EndDate.Month == m)
+                        .OrderBy(e => e.StartDate)
+                        .ToList();
+
+                    var monthDays = monthEntries.Sum(e =>
+                    {
+                        var start = e.StartDate.Month == m
+                            ? e.StartDate
+                            : new DateOnly(e.StartDate.Year, m, 1);
+                        var end = e.EndDate.Month == m
+                            ? e.EndDate
+                            : new DateOnly(e.EndDate.Year, m,
+                                DateTime.DaysInMonth(e.EndDate.Year, m));
+                        return end.DayNumber - start.DayNumber + 1;
+                    });
+
+                    var hasDays = monthDays > 0;
+
+                    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                        <div class="border rounded-3 p-3 h-100 @(hasDays ? "border-danger-subtle bg-danger-subtle" : "bg-light")">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold small">@monthNames[m - 1]</span>
+                                @if (hasDays)
+                                {
+                                    <span class="badge rounded-pill bg-danger">@monthDays дни</span>
+                                }
+                                else
+                                {
+                                    <span class="badge rounded-pill bg-secondary bg-opacity-25 text-secondary">
+                                        няма
+                                    </span>
+                                }
+                            </div>
+
+                            @if (hasDays)
+                            {
+                                <ul class="list-unstyled mb-0 small">
+                                    @foreach (var entry in monthEntries)
+                                    {
+                                        var label = entry.StartDate == entry.EndDate
+                                            ? $"{entry.StartDate.Day}.{entry.StartDate.Month:D2}"
+                                            : $"{entry.StartDate.Day}.{entry.StartDate.Month:D2} – {entry.EndDate.Day}.{entry.EndDate.Month:D2}";
+
+                                        <li class="text-danger">
+                                            <i class="fas fa-calendar-minus me-1" style="font-size:0.7rem;"></i>
+                                            @label
+                                            <span class="text-muted">(@entry.Days дни)</span>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="text-muted mb-0 small">Няма отсъствия</p>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (activeEntries.Any())
+    {
+        <div class="card shadow-sm border-0 rounded-3 mt-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">Всички периоди на отсъствие</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle small">
+                        <thead class="text-muted">
+                            <tr>
+                                <th>#</th>
+                                <th>От дата</th>
+                                <th>До дата</th>
+                                <th class="text-center">Дни</th>
+                                <th>Месец</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int rowNum = 1;
+                            }
+                            @foreach (var entry in activeEntries.OrderBy(e => e.StartDate))
+                            {
+                                <tr>
+                                    <td class="text-muted">@rowNum</td>
+                                    <td>@entry.StartDate.ToString("dd.MM.yyyy")</td>
+                                    <td>@entry.EndDate.ToString("dd.MM.yyyy")</td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill bg-danger">@entry.Days</span>
+                                    </td>
+                                    <td class="text-muted">
+                                        @monthNames[entry.StartDate.Month - 1]
+                                    </td>
+                                </tr>
+                                rowNum++;
+                            }
+                        </tbody>
+                        <tfoot class="fw-bold border-top">
+                            <tr>
+                                <td colspan="3" class="text-end">Общо:</td>
+                                <td class="text-center">
+                                    <span class="badge rounded-pill bg-danger">@usedDays</span>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>

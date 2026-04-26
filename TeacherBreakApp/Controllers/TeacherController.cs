@@ -1,14 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
-using TeacherBreakApp.Services.Contracts;
+﻿using TeacherBreakApp.Data.Models;
 
 namespace TeacherBreakApp.Controllers
 {
-    using Data;
-    using TeacherBreakApp.Data.Models;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
+    using Services.Contracts;
 
     [Authorize(Roles = "Teacher")]
     public class TeacherController : BaseController
@@ -24,12 +20,12 @@ namespace TeacherBreakApp.Controllers
             {
                 Guid userId = await _accountService.IsUserValidAsync(User);
 
-                var balance = await _accountService.GetLeaveBalanceByIdAsync(userId);
+                LeaveBalance? balance = await _accountService.GetLeaveBalanceWithTeacherIdAsync(userId);
 
                 if (balance == null)
                 {
-                    ViewBag.Message = "Вашият профил все още не е конфигуриран от администратор.";
-                    return View();
+                    ModelState.AddModelError("", "Вашият профил все още не е конфигуриран от администратор.");
+                    return RedirectToPage("/Account/Login", new { area = "Identity", });
                 }
 
                 return View(balance);

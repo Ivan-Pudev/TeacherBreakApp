@@ -45,6 +45,11 @@ namespace TeacherBreakApp.Services
             return _accountRepository.GetLeaveBalanceWithTeacherByIdAsync(id);
         }
 
+        public Task<LeaveBalance?> GetLeaveBalanceWithTeacherIdAsync(Guid? id)
+        {
+            return _accountRepository.GetLeaveBalanceWithTeacherIdAsync(id);
+        }
+
         public async Task<EditLeaveViewModel?> DisplayEdit(Guid? id)
         {
             LeaveBalance? lb = await GetLeaveBalanceByIdAsync(id);

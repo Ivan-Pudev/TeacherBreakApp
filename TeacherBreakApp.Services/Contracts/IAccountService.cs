@@ -14,6 +14,8 @@ namespace TeacherBreakApp.Services.Contracts
 
         Task<LeaveBalance?> GetLeaveBalanceByIdAsync(Guid? id);
 
+        Task<LeaveBalance?> GetLeaveBalanceWithTeacherIdAsync(Guid? id);
+
         Task<EditLeaveViewModel?> DisplayEdit(Guid? id);
 
         Task UpdateLeaveBalanceAsync(Guid id, EditLeaveViewModel vm);
