@@ -34,7 +34,7 @@ namespace TeacherBreakApp.Controllers
 
                 return View(balance);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return RedirectToPage("/Account/Login", new { area = "Identity", });
             }

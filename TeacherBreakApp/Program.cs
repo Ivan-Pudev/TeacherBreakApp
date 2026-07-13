@@ -21,7 +21,7 @@ namespace TeacherBreakApp
 
             builder.Services.AddDbContext<TeacherBreakAppDbContext>(options =>
                 options.UseSqlServer(
-                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                    builder.Configuration.GetConnectionString("TeacherBreakAppDbContextConnection"),
                     sql => sql.EnableRetryOnFailure()));
 
             builder.Services

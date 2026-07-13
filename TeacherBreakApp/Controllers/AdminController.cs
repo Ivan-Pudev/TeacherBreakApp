@@ -6,6 +6,7 @@ namespace TeacherBreakApp.Controllers
     using Microsoft.AspNetCore.Mvc;
     using System.Threading.Tasks;
     using Models;
+    using Microsoft.AspNetCore.Mvc.ModelBinding;
 
     [Authorize(Roles = "Admin")]
     public class AdminController : BaseController
@@ -26,9 +27,18 @@ namespace TeacherBreakApp.Controllers
         [HttpGet]
         public async Task<IActionResult> EditLeave(Guid? id)
         {
-            var lbViewModel = await _accountService.DisplayEdit(id);
+            try
+            {
+                var lbViewModel = await _accountService.DisplayEdit(id);
 
-            return View(lbViewModel);
+                return View(lbViewModel);
+            }
+            catch (Exception ex)
+            {
+               ModelState.AddModelError(string.Empty,ex.Message);
+            }
+
+            throw new NotImplementedException();
         }
 
         [HttpPost]
@@ -38,8 +48,17 @@ namespace TeacherBreakApp.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            await _accountService.UpdateLeaveBalanceAsync(Guid.Parse(model.LeaveBalanceId.ToString()), model);
-            return RedirectToAction(nameof(Dashboard));
+            try
+            {
+                await _accountService.UpdateLeaveBalanceAsync(Guid.Parse(model.LeaveBalanceId.ToString()), model);
+                return RedirectToAction(nameof(Dashboard));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+
+            throw new NotImplementedException();
         }
 
         [HttpGet]
@@ -57,18 +76,36 @@ namespace TeacherBreakApp.Controllers
                 return View(model);
             }
 
-            await _accountService.CreateUserAsync(model);
-            
-            return RedirectToAction(nameof(Dashboard));
+            try
+            {
+                await _accountService.CreateUserAsync(model);
+
+                return RedirectToAction(nameof(Dashboard));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+
+            throw new NotImplementedException();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteLeave(Guid id)
         {
-            await _accountService.HardDeleteLeaveBalanceAsync(id);
+            try
+            {
+                await _accountService.HardDeleteLeaveBalanceAsync(id);
 
-            return RedirectToAction(nameof(Dashboard));
+                return RedirectToAction(nameof(Dashboard));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+
+            throw new NotImplementedException();
         }
     }
 }
